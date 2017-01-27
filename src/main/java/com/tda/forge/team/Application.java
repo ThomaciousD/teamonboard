@@ -29,7 +29,7 @@ public class Application {
      * A main method to start this application.
      */
     public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
+        // SpringApplication.run(Application.class, args);
     }
 
 }

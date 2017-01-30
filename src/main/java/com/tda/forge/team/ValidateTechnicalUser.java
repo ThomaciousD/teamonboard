@@ -14,6 +14,7 @@ public class ValidateTechnicalUser implements Processor {
 		user.setId(exchange.getIn().getHeader("id", String.class));
 		user.setFirstName(user.getId());
 		user.setLastName("ForgeTechnicalUser");
+		user.setEmail(user.getId()+"@forge.tech");
 	}
 
 }

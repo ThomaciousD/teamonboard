@@ -10,6 +10,8 @@ public class ProjectDAO {
 
 	String lastName;
 
+	String email;
+	
 	public ProjectDAO(String id) {
 		super();
 		this.id = id;
@@ -45,6 +47,14 @@ public class ProjectDAO {
 
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
 	}
 
 	public String toString() {

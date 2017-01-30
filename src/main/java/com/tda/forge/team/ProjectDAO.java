@@ -3,11 +3,34 @@ package com.tda.forge.team;
 public class ProjectDAO {
 
 	String id;
-	
+
 	String password;
-	
+
 	String firstName;
-	
+
+	String lastName;
+
+	public ProjectDAO(String id) {
+		super();
+		this.id = id;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
 	public String getFirstName() {
 		return firstName;
 	}
@@ -24,32 +47,7 @@ public class ProjectDAO {
 		this.lastName = lastName;
 	}
 
-
-	String lastName;
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public ProjectDAO(String id) {
-		super();
-		this.id = id;
-	}
-
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-
-
-	public String toString(){
-		return "ProjectDAO [id: "+id+", password=*************]";
+	public String toString() {
+		return "ProjectDAO [id: " + id + ", password=*************]";
 	}
 }

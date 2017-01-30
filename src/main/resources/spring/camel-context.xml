@@ -6,12 +6,8 @@
        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
 
 	<!-- You could also define a traditional camel context here -->
-	<camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">
-		<!-- <route id="simple-route"> <from id="route-timer" uri="timer:foo?period=2000" 
-			/> <transform id="route-transform"> <method ref="myTransformer" /> </transform> 
-			<log id="route-log" message=">>> ${body}" /> </route> -->
-
-		<route>
+	<camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">		
+		<route id="nexus">
 			<from uri="stream:in?promptMessage=Enter project id: " />
 			<to uri="bean:validateInput" />
 			<transform>
@@ -19,36 +15,35 @@
 			</transform>
 			<to uri="stream:out" />
 			<process ref="storeIdProcessor" />
-			<to uri="http4:localhost:8080/password" />
+			<to uri="http4:{{credgenerator.host}}:{{credgenerator.port}}/password" />
 			<unmarshal ref="gson" />
 			<process ref="validateTechnicalUser" />
 			<marshal ref="gson" />
-			<process ref="nexusPrepareRequestTransformer" /> <!--<to uri="http4://{{mlHost}}:{{mlXdbcPort}}/v1/documents?authUsername={{mlUsername}}&amp;authPassword={{mlPassword}}" 
-				/> -->
 			<setHeader headerName="CamelHttpMethod">
 				<constant>POST</constant>
-			</setHeader>
-			<setHeader headerName="CamelHttpQuery">
-				<constant>extension=xml&amp;collection=rest-api</constant>
 			</setHeader>
 			<setHeader headerName="Content-type">
 				<constant>text/plain</constant>
 			</setHeader>
 			<setHeader headerName="Authorization">
-				<constant>Basic YWRtaW46YWRtaW4xMjM=</constant>
+				<constant>{{nexus.admin.auth}}</constant>
 			</setHeader>
-			<to uri="http4:localhost:8081/service/siesta/rest/v1/script/user/run" />
+			<to uri="http4:{{nexus.host}}:{{nexus.port}}/service/siesta/rest/v1/script/user/run" />
 		</route>
 	</camelContext>
 
 	<bean name="validateInput" class="com.tda.forge.team.ValidateInput" />
 	<bean name="validateTechnicalUser" class="com.tda.forge.team.ValidateTechnicalUser" />
 	<bean name="storeIdProcessor" class="com.tda.forge.team.IdProcessor" />
-	<bean name="nexusPrepareRequestTransformer" class="com.tda.forge.team.NexusPrepareRequestTransformer" />
 
 	<bean id="gson" class="org.apache.camel.component.gson.GsonDataFormat">
 		<property name="unmarshalType" value="com.tda.forge.team.ProjectDAO" />
 		<property name="fieldNamingPolicy" value="IDENTITY" />
+	</bean>
+
+	<bean id="properties"
+		class="org.apache.camel.component.properties.PropertiesComponent">
+		<property name="location" value="classpath:application-${spring.profiles.active}.properties" />
 	</bean>
 
 </beans>

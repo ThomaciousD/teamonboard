@@ -3,10 +3,11 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camel="http://camel.apache.org/schema/spring"
 	xsi:schemaLocation="
        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd 
+      ">
 
 	<!-- You could also define a traditional camel context here -->
-	<camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">		
+	<camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">
 		<route id="nexus">
 			<from uri="stream:in?promptMessage=Enter project id: " />
 			<to uri="bean:validateInput" />
@@ -28,7 +29,22 @@
 			<setHeader headerName="Authorization">
 				<constant>{{nexus.admin.auth}}</constant>
 			</setHeader>
-			<to uri="http4:{{nexus.host}}:{{nexus.port}}/service/siesta/rest/v1/script/user/run" />
+			<to
+				uri="http4:{{nexus.host}}:{{nexus.port}}/service/siesta/rest/v1/script/user/run" />
+			<to
+				uri="rabbitmq://{{rabbitmq.host}}/exchange?connectionFactory=#customRabbitConnectionFactory&amp;routingKey=docker" />
+		</route>
+
+		<route id="docker-conf">
+			<from
+				uri="rabbitmq://{{rabbitmq.host}}:{{rabbitmq.port}}/exchange?connectionFactory=#customRabbitConnectionFactory&amp;routingKey=docker" />
+			<to uri="stream:out" />
+
+			<convertBodyTo type="java.lang.String" />
+			<transform>
+				<simple>${in.body}&#13;</simple>
+			</transform>
+			<to uri="stream:out" />
 		</route>
 	</camelContext>
 
@@ -43,7 +59,21 @@
 
 	<bean id="properties"
 		class="org.apache.camel.component.properties.PropertiesComponent">
-		<property name="location" value="classpath:application-${spring.profiles.active}.properties" />
+		<property name="location"
+			value="classpath:application-${spring.profiles.active}.properties" />
+	</bean>
+
+	<bean
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location">
+			<value>classpath:application-${spring.profiles.active}.properties
+			</value>
+		</property>
+	</bean>
+
+	<bean id="customRabbitConnectionFactory" class="com.rabbitmq.client.ConnectionFactory">
+		<property name="host" value="${rabbitmq.host}" />
+		<property name="port" value="${rabbitmq.port}" />
 	</bean>
 
 </beans>

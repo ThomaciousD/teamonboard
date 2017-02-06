@@ -26,7 +26,7 @@ public class ValidateInput {
 			// copy the input into a new String and pass it to the next step
 			return new String(input);
 		} else {
-			throw new CamelException("String is null or empty");
+			throw new CamelException("ValidateInput: String is null or empty");
 		}
 	}
 }

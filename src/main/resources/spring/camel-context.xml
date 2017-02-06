@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camel="http://camel.apache.org/schema/spring"
+	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="
        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd 
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
+       http://www.springframework.org/schema/context 	http://www.springframework.org/schema/context/spring-context-4.0.xsd
       ">
+
+	<context:component-scan base-package="com.tda.forge.team" />
 
 	<!-- You could also define a traditional camel context here -->
 	<camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">
@@ -29,28 +33,40 @@
 			<setHeader headerName="Authorization">
 				<constant>{{nexus.admin.auth}}</constant>
 			</setHeader>
-			<to
-				uri="http4:{{nexus.host}}:{{nexus.port}}/service/siesta/rest/v1/script/user/run" />
-			<to
-				uri="rabbitmq://{{rabbitmq.host}}/exchange?connectionFactory=#customRabbitConnectionFactory&amp;routingKey=docker" />
+			<multicast stopOnException="true">
+				<to
+					uri="rabbitmq://{{rabbitmq.host}}:{{rabbitmq.port}}/exchange?connectionFactory=#customRabbitConnectionFactory&amp;routingKey=auth" />
+				<to
+					uri="http4:{{nexus.host}}:{{nexus.port}}/service/siesta/rest/v1/script/user/run" />
+			</multicast>
 		</route>
 
-		<route id="docker-conf">
+		<route id="gen-auth">
 			<from
-				uri="rabbitmq://{{rabbitmq.host}}:{{rabbitmq.port}}/exchange?connectionFactory=#customRabbitConnectionFactory&amp;routingKey=docker" />
+				uri="rabbitmq://{{rabbitmq.host}}:{{rabbitmq.port}}/exchange?connectionFactory=#customRabbitConnectionFactory&amp;routingKey=auth" />
+			<unmarshal ref="gson" />
+			<process ref="authProcessor" />
 			<to uri="stream:out" />
+			<to
+				uri="rabbitmq://{{rabbitmq.host}}:{{rabbitmq.port}}/conf?connectionFactory=#customRabbitConnectionFactory&amp;routingKey=docker-conf" />
+		</route>
 
-			<convertBodyTo type="java.lang.String" />
-			<transform>
-				<simple>${in.body}&#13;</simple>
-			</transform>
+		<route id="docker-auth">
+			<from
+				uri="rabbitmq://{{rabbitmq.host}}:{{rabbitmq.port}}/conf?connectionFactory=#customRabbitConnectionFactory&amp;routingKey=docker-conf" />
+			<process ref="dockerConfig" />
 			<to uri="stream:out" />
 		</route>
+
 	</camelContext>
 
 	<bean name="validateInput" class="com.tda.forge.team.ValidateInput" />
 	<bean name="validateTechnicalUser" class="com.tda.forge.team.ValidateTechnicalUser" />
 	<bean name="storeIdProcessor" class="com.tda.forge.team.IdProcessor" />
+	<bean name="authProcessor" class="com.tda.forge.team.Base64Processor" />
+	<bean name="dockerConfig" class="com.tda.forge.team.DockerConfigProcessor">
+		<property name="properties" ref="spring-properties"></property>
+	</bean>
 
 	<bean id="gson" class="org.apache.camel.component.gson.GsonDataFormat">
 		<property name="unmarshalType" value="com.tda.forge.team.ProjectDAO" />
@@ -63,11 +79,20 @@
 			value="classpath:application-${spring.profiles.active}.properties" />
 	</bean>
 
+	<bean id="spring-properties"
+		class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<property name="location"
+			value="classpath:application-${spring.profiles.active}.properties" />
+	</bean>
+
 	<bean
-		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-		<property name="location">
-			<value>classpath:application-${spring.profiles.active}.properties
-			</value>
+		class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+		<property name="ignoreUnresolvablePlaceholders" value="false" />
+		<property name="locations">
+			<list>
+				<value>classpath:application-${spring.profiles.active}.properties
+				</value>
+			</list>
 		</property>
 	</bean>
 

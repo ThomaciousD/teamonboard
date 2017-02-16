@@ -20,8 +20,6 @@ public class DockerConfigProcessor implements Processor {
 			"{" + "\"auths\": {" + "\"%1$s\": {" + "\"auth\": \"%2$s\"," + "\"email\": \"%3$s\"" + "}" + "}" + "}");
 
 	public void process(Exchange exchange) throws Exception {
-		dockerRegistryHost = properties.getProperty("dockerRegistryHost", "localhost");
-		dockerRegistryPort = properties.getProperty("dockerRegistryPort", "8081");
 		exchange.getIn()
 				.setBody(String.format(JSON_CONFIG,
 						dockerRegistryHost + ((dockerRegistryHost != null && !dockerRegistryPort.isEmpty())
@@ -33,5 +31,15 @@ public class DockerConfigProcessor implements Processor {
 	public void setProperties(Properties properties) {
 		this.properties = properties;
 	}
+
+	public void setDockerRegistryHost(String dockerRegistryHost) {
+		this.dockerRegistryHost = dockerRegistryHost;
+	}
+
+	public void setDockerRegistryPort(String dockerRegistryPort) {
+		this.dockerRegistryPort = dockerRegistryPort;
+	}
+	
+	
 
 }

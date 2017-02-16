@@ -66,6 +66,8 @@
 	<bean name="authProcessor" class="com.tda.forge.team.Base64Processor" />
 	<bean name="dockerConfig" class="com.tda.forge.team.DockerConfigProcessor">
 		<property name="properties" ref="spring-properties"></property>
+		<property name="dockerRegistryHost" value="${nexus.host}"></property>
+		<property name="dockerRegistryPort" value="${nexus.port}"></property>
 	</bean>
 
 	<bean id="gson" class="org.apache.camel.component.gson.GsonDataFormat">

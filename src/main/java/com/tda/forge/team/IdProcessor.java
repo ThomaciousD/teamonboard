@@ -10,7 +10,7 @@ public class IdProcessor implements Processor {
 
 	public void process(Exchange exchange) throws Exception {
 		logger.info("Setting exchange-in header id {}", exchange.getIn().getBody());
-		exchange.getIn().setHeader("id", exchange.getIn().getBody());
+		exchange.setProperty("id", exchange.getIn().getBody());
 	}
 
 }

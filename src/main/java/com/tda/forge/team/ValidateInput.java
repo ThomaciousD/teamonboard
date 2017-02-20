@@ -11,7 +11,7 @@ public class ValidateInput {
 
 	private Logger logger = LoggerFactory.getLogger(ValidateInput.class);
 
-	private static String validHostnameRegex = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$";
+	private static String validHostnameRegex = "^project=((([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$)";
 
 	private static final Pattern pattern = Pattern.compile(validHostnameRegex);
 
@@ -24,7 +24,7 @@ public class ValidateInput {
 			}
 			logger.info("Host name {} is valid.", input);
 			// copy the input into a new String and pass it to the next step
-			return new String(input);
+			return new String(matcher.group(1));
 		} else {
 			throw new CamelException("ValidateInput: String is null or empty");
 		}

@@ -11,7 +11,7 @@ public class ValidateTechnicalUser implements Processor {
 	@Override
 	public void process(Exchange exchange) throws Exception {
 		ProjectDAO user = exchange.getIn().getBody(ProjectDAO.class);
-		user.setId(exchange.getIn().getHeader("id", String.class));
+		user.setId(exchange.getProperty("id", String.class));
 		user.setFirstName(user.getId());
 		user.setLastName("ForgeTechnicalUser");
 		user.setEmail(user.getId()+"@forge.tech");

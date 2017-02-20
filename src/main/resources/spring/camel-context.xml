@@ -13,13 +13,15 @@
 	<!-- You could also define a traditional camel context here -->
 	<camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">
 		<route id="nexus">
-			<from uri="stream:in?promptMessage=Enter project id: " />
+			<!-- <from uri="stream:in?promptMessage=Enter project id: " /> -->
+			<from
+				uri="jetty:http://0.0.0.0:{{http.port}}/forge/project?traceEnabled=true" />
 			<to uri="bean:validateInput" />
 			<transform>
 				<simple>${body.toLowerCase()}</simple>
 			</transform>
-			<to uri="stream:out" />
 			<process ref="storeIdProcessor" />
+			<process ref="emptyMessageProcessor" />
 			<to uri="http4:{{credgenerator.host}}:{{credgenerator.port}}/password" />
 			<unmarshal ref="gson" />
 			<process ref="validateTechnicalUser" />
@@ -34,7 +36,7 @@
 				<constant>{{nexus.admin.auth}}</constant>
 			</setHeader>
 			<multicast stopOnException="true">
-				<to
+				<wireTap
 					uri="rabbitmq://{{rabbitmq.host}}:{{rabbitmq.port}}/exchange?connectionFactory=#customRabbitConnectionFactory&amp;routingKey=auth" />
 				<to
 					uri="http4:{{nexus.host}}:{{nexus.port}}/service/siesta/rest/v1/script/user/run" />
@@ -64,6 +66,8 @@
 	<bean name="validateTechnicalUser" class="com.tda.forge.team.ValidateTechnicalUser" />
 	<bean name="storeIdProcessor" class="com.tda.forge.team.IdProcessor" />
 	<bean name="authProcessor" class="com.tda.forge.team.Base64Processor" />
+	<bean name="emptyMessageProcessor" class="com.tda.forge.team.EmptyMessageProcessor" />
+
 	<bean name="dockerConfig" class="com.tda.forge.team.DockerConfigProcessor">
 		<property name="properties" ref="spring-properties"></property>
 		<property name="dockerRegistryHost" value="${nexus.host}"></property>

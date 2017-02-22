@@ -48,17 +48,21 @@
 				uri="rabbitmq://{{rabbitmq.host}}:{{rabbitmq.port}}/exchange?connectionFactory=#customRabbitConnectionFactory&amp;routingKey=auth" />
 			<unmarshal ref="gson" />
 			<process ref="authProcessor" />
-			<to uri="stream:out" />
-			<to
-				uri="rabbitmq://{{rabbitmq.host}}:{{rabbitmq.port}}/conf?connectionFactory=#customRabbitConnectionFactory&amp;routingKey=docker-conf" />
+<!-- 			<to -->
+<!-- 				uri="rabbitmq://{{rabbitmq.host}}:{{rabbitmq.port}}/conf?connectionFactory=#customRabbitConnectionFactory&amp;routingKey=docker-conf" /> -->
+<!-- 		</route> -->
+
+<!-- 		<route id="docker-auth"> -->
+<!-- 			<from -->
+<!-- 				uri="rabbitmq://{{rabbitmq.host}}:{{rabbitmq.port}}/conf?connectionFactory=#customRabbitConnectionFactory&amp;routingKey=docker-conf" /> -->
+			<process ref="dockerConfig" />
+			<process ref="secretProcessor" />
 		</route>
 
-		<route id="docker-auth">
-			<from
-				uri="rabbitmq://{{rabbitmq.host}}:{{rabbitmq.port}}/conf?connectionFactory=#customRabbitConnectionFactory&amp;routingKey=docker-conf" />
-			<process ref="dockerConfig" />
-			<to uri="stream:out" />
-		</route>
+<!-- 		<route id="secret"> -->
+<!-- 			<from -->
+<!-- 				uri="rabbitmq://{{rabbitmq.host}}:{{rabbitmq.port}}/conf?connectionFactory=#customRabbitConnectionFactory&amp;routingKey=secret" /> -->
+<!-- 		</route> -->
 
 	</camelContext>
 
@@ -74,6 +78,11 @@
 		<property name="dockerRegistryPort" value="${nexus.port}"></property>
 	</bean>
 
+	<bean name="secretProcessor" class="com.tda.forge.team.SecretProcessor">
+		<property name="properties" ref="spring-properties"></property>
+		<property name="deploy" value="${secret.deploy}" />
+	</bean>
+
 	<bean id="gson" class="org.apache.camel.component.gson.GsonDataFormat">
 		<property name="unmarshalType" value="com.tda.forge.team.ProjectDAO" />
 		<property name="fieldNamingPolicy" value="IDENTITY" />
@@ -82,13 +91,13 @@
 	<bean id="properties"
 		class="org.apache.camel.component.properties.PropertiesComponent">
 		<property name="location"
-			value="classpath:application-${spring.profiles.active}.properties" />
+			value="classpath:application-${spring_profiles_active}.properties" />
 	</bean>
 
 	<bean id="spring-properties"
 		class="org.springframework.beans.factory.config.PropertiesFactoryBean">
 		<property name="location"
-			value="classpath:application-${spring.profiles.active}.properties" />
+			value="classpath:application-${spring_profiles_active}.properties" />
 	</bean>
 
 	<bean
@@ -96,7 +105,7 @@
 		<property name="ignoreUnresolvablePlaceholders" value="false" />
 		<property name="locations">
 			<list>
-				<value>classpath:application-${spring.profiles.active}.properties
+				<value>classpath:application-${spring_profiles_active}.properties
 				</value>
 			</list>
 		</property>

@@ -12,6 +12,7 @@ public class Base64Processor implements Processor {
 
 	public void process(Exchange exchange) throws Exception {
 		ProjectDAO project = exchange.getIn().getBody(ProjectDAO.class);
+		exchange.setProperty("projectId", project.getId());
 		exchange.getOut().setBody(new String(
 				Base64.getEncoder().encode(new String(project.getId() + ":" + project.getPassword()).getBytes())),
 				String.class);
